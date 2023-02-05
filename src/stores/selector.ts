@@ -11,7 +11,12 @@ export const ApiSelector = (s: Store) => {
       const _i = paths[_p];
       const _k = method as keyof typeof _i;
       const item = paths[_p][_k] as IPathMethod;
-      if (item.operationId === current) return item;
+      if (item.operationId === current)
+        return {
+          item,
+          path: _p,
+          method: _k,
+        };
     }
   }
   return null;
