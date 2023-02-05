@@ -55,6 +55,8 @@ export interface IApiRequestBody {
 }
 
 export const ApiRequest = ({ api }: { api: IPathMethod }) => {
+  const { json } = useStore();
+  const { definitions } = json;
   const headers: IApiRequestHeaders[] = [
     {
       param: "Content-Type",
@@ -64,15 +66,27 @@ export const ApiRequest = ({ api }: { api: IPathMethod }) => {
       extra: "",
     },
   ];
-  const body: IApiRequestBody[] = [
-    {
-      param: "Content-Type",
-      type: "string",
-      default: "",
-      example: "",
-      extra: "",
-    },
-  ];
+  const body: IApiRequestBody[] = [];
+  if (api.parameters) {
+    for (const param of api.parameters) {
+      const bodyParams = definitions[param.schema?.originalRef];
+      if (!bodyParams) continue;
+      for (const _p in bodyParams?.properties) {
+        const k = _p as keyof typeof bodyParams.properties;
+        const property = bodyParams?.properties[k];
+        body.push({
+          param: _p,
+          type: property.type,
+          default: "",
+          required: !bodyParams.required
+            ? false
+            : bodyParams.required.includes(_p),
+          example: property.example ?? "",
+          extra: property.description ?? "",
+        });
+      }
+    }
+  }
   return (
     <>
       <h4>Request</h4>
@@ -177,6 +191,68 @@ export const ApiRequestBody = ({ body }: { body: IApiRequestBody[] }) => {
   );
 };
 
+export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
+  const columns = [
+    {
+      title: "名称",
+      dataIndex: "param",
+      key: "param",
+    },
+    {
+      title: "类型",
+      dataIndex: "type",
+      key: "type",
+    },
+    {
+      title: "是否必须",
+      dataIndex: "required",
+      key: "required",
+      render: (r: boolean) => (r ? "是" : "否"),
+    },
+    {
+      title: "默认值",
+      dataIndex: "default",
+      key: "default",
+    },
+    {
+      title: "示例",
+      dataIndex: "example",
+      key: "example",
+    },
+    {
+      title: "其他信息",
+      dataIndex: "extra",
+      key: "extra",
+    },
+  ];
+  const { json } = useStore();
+  const { definitions } = json;
+  const responses = api.responses[200];
+  const _R = definitions[responses.schema?.originalRef];
+  const response: IApiRequestBody[] = [];
+  for (const _p in _R?.properties) {
+    const k = _p as keyof typeof _R.properties;
+    const property = _R.properties[k];
+    response.push({
+      param: _p,
+      type: property.type,
+      default: "",
+      required: !_R.required ? false : _R.required.includes(_p),
+      example: property.example ?? "",
+      extra: property.description ?? "",
+    });
+  }
+  return (
+    <Table
+      rowKey="body"
+      size="small"
+      columns={columns}
+      dataSource={response}
+      pagination={false}
+    />
+  );
+};
+
 export const ApiDetail = () => {
   const api = useStore(ApiSelector);
   if (!api) return <></>;
@@ -204,6 +280,7 @@ export const ApiDetail = () => {
       </div>
       <div style={{ marginTop: 16 }}>
         <h4>Response</h4>
+        <ApiResponseBody api={api.item} />
       </div>
     </div>
   );

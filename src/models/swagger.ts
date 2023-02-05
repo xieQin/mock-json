@@ -29,6 +29,7 @@ export interface IDefinitionProperty {
     description: string;
     example: string;
     enum: [];
+    items: ISchema;
   };
 }
 
@@ -65,10 +66,18 @@ export interface IPathMethod {
   produces: [];
   deprecated: boolean;
   operationId: string;
-  parameters: [];
+  parameters: IParameter[];
   responses: IResponses;
   summary: string;
   tags: string[];
+}
+
+export interface IParameter {
+  description: string;
+  in: string;
+  name: string;
+  required: boolean;
+  schema: ISchema;
 }
 
 export enum ResponseCode {
@@ -82,9 +91,11 @@ export enum ResponseCode {
 export type IResponses = {
   [key in ResponseCode]: {
     description: string;
-    schema: {
-      $ref: string;
-      originalRef: string;
-    };
+    schema: ISchema;
   };
 };
+
+export interface ISchema {
+  $ref: string;
+  originalRef: string;
+}
