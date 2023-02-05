@@ -1,6 +1,11 @@
 import { Descriptions, List, Table, Tag } from "antd";
 
-import { IPathMethod, RequestMethod, RequestMethodColor } from "@/models";
+import {
+  IPathMethod,
+  ISchema,
+  RequestMethod,
+  RequestMethodColor,
+} from "@/models";
 import { ApiSelector, useStore } from "@/stores";
 
 import styles from "./index.module.css";
@@ -52,8 +57,12 @@ export interface IApiRequestBody {
   example?: string;
   default?: string;
   extra?: string;
+  items?: ISchema;
+  $ref?: string;
+  originalRef?: string;
 }
 
+// todo refactor body
 export const ApiRequest = ({ api }: { api: IPathMethod }) => {
   const { json } = useStore();
   const { definitions } = json;
@@ -191,6 +200,7 @@ export const ApiRequestBody = ({ body }: { body: IApiRequestBody[] }) => {
   );
 };
 
+// todo refactor body
 export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
   const columns = [
     {
@@ -234,12 +244,18 @@ export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
     const k = _p as keyof typeof _R.properties;
     const property = _R.properties[k];
     response.push({
+      ...property,
       param: _p,
       type: property.type,
       default: "",
       required: !_R.required ? false : _R.required.includes(_p),
       example: property.example ?? "",
       extra: property.description ?? "",
+      originalRef: property.items
+        ? property.items.originalRef
+        : property.originalRef
+        ? property.originalRef
+        : undefined,
     });
   }
   return (
@@ -248,6 +264,89 @@ export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
       size="small"
       columns={columns}
       dataSource={response}
+      expandable={{
+        expandedRowRender: record =>
+          record.originalRef ? (
+            <ApiResponseBodyItem originalRef={record.originalRef} />
+          ) : (
+            <></>
+          ),
+        rowExpandable: record => record.originalRef !== undefined,
+      }}
+      pagination={false}
+    />
+  );
+};
+
+export const ApiResponseBodyItem = ({
+  originalRef,
+}: {
+  originalRef: string;
+}) => {
+  const { json } = useStore();
+  const { definitions } = json;
+  const _R = definitions[originalRef];
+  const response: IApiRequestBody[] = [];
+  for (const _p in _R?.properties) {
+    const k = _p as keyof typeof _R.properties;
+    const property = _R.properties[k];
+    response.push({
+      ...property,
+      param: _p,
+      type: property.type,
+      default: "",
+      required: !_R.required ? false : _R.required.includes(_p),
+      example: property.example ?? "",
+      extra: property.description ?? "",
+      originalRef: property.items
+        ? property.items.originalRef
+        : property.originalRef
+        ? property.originalRef
+        : undefined,
+    });
+  }
+  const columns = [
+    {
+      dataIndex: "param",
+      key: "param",
+    },
+    {
+      dataIndex: "type",
+      key: "type",
+    },
+    {
+      dataIndex: "required",
+      key: "required",
+      render: (r: boolean) => (r ? "是" : "否"),
+    },
+    {
+      dataIndex: "default",
+      key: "default",
+    },
+    {
+      dataIndex: "example",
+      key: "example",
+    },
+    {
+      dataIndex: "extra",
+      key: "extra",
+    },
+  ];
+  return (
+    <Table
+      rowKey="body"
+      size="small"
+      columns={columns}
+      dataSource={response}
+      expandable={{
+        expandedRowRender: record =>
+          record.originalRef ? (
+            <ApiResponseBodyItem originalRef={record.originalRef} />
+          ) : (
+            <></>
+          ),
+        rowExpandable: record => record.originalRef !== undefined,
+      }}
       pagination={false}
     />
   );

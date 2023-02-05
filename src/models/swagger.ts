@@ -26,10 +26,12 @@ export interface IDefinitionProperty {
   [key: string]: {
     type: string;
     format?: string;
-    description: string;
-    example: string;
+    description?: string;
+    example?: string;
     enum: [];
-    items: ISchema;
+    items?: ISchema;
+    $ref?: string;
+    originalRef?: string;
   };
 }
 
