@@ -1,12 +1,26 @@
-import Logo from "@/assets/logo.png";
-import styles from "@/assets/styles/Home.module.css";
-import HelloWorld from "@/components/HelloWorld/HelloWorld";
+// import styles from "@/assets/styles/Home.module.css";
+import { TagListSelector, useStore } from "@/stores";
 
 export default function HomePage() {
+  const tagList = useStore(TagListSelector);
+  console.log(tagList);
   return (
-    <main className={styles.main}>
-      <img className={styles.logo} alt="React logo" width="400px" src={Logo} />
-      <HelloWorld msg="Hello React + TypeScript + Vite + React-Router + Zustand" />
-    </main>
+    <div>
+      {Object.keys(tagList).map((tag, i) => (
+        <div key={i}>
+          <div>{tag}</div>
+          <div>
+            {tagList[tag].map((item, _i) => (
+              <div key={_i}>
+                {Object.keys(item).map((method, _j) => {
+                  const _k = method as keyof typeof item;
+                  return <div key={_j}>{item[_k].summary}</div>;
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
