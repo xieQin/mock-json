@@ -60,5 +60,11 @@ h6 {
   isolation: isolate;
   height: 100%;
 }
-
+.ant-table-wrapper
+  .ant-table.ant-table-small
+  .ant-table-tbody
+  .ant-table-wrapper:only-child
+  .ant-table {
+  margin: 0;
+}
 /* END - CSS Reset */
