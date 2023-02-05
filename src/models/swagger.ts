@@ -77,9 +77,11 @@ export interface IPathMethod {
 export interface IParameter {
   description: string;
   in: string;
+  type: unknown;
   name: string;
   required: boolean;
   schema: ISchema;
+  example?: string;
 }
 
 export enum ResponseCode {

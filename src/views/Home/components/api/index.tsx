@@ -31,7 +31,7 @@ export const ApiItem = ({
       aria-hidden
       className={styles.ApiItem}
       onClick={() => {
-        setStates("current", api.operationId);
+        setStates("current", api.operationId || api.summary);
       }}
     >
       <List.Item>
@@ -78,20 +78,32 @@ export const ApiRequest = ({ api }: { api: IPathMethod }) => {
   const body: IApiRequestBody[] = [];
   if (api.parameters) {
     for (const param of api.parameters) {
-      const bodyParams = definitions[param.schema?.originalRef];
-      if (!bodyParams) continue;
-      for (const _p in bodyParams?.properties) {
-        const k = _p as keyof typeof bodyParams.properties;
-        const property = bodyParams?.properties[k];
+      if (param.schema) {
+        const bodyParams = definitions[param.schema?.originalRef];
+        if (!bodyParams) continue;
+        for (const _p in bodyParams?.properties) {
+          const k = _p as keyof typeof bodyParams.properties;
+          const property = bodyParams?.properties[k];
+          body.push({
+            param: _p,
+            type: property.type,
+            default: "",
+            required: !bodyParams.required
+              ? false
+              : bodyParams.required.includes(_p),
+            example: property.example ?? "",
+            extra: property.description ?? "",
+          });
+        }
+      } else {
         body.push({
-          param: _p,
-          type: property.type,
+          ...param,
+          param: param.name,
+          type: param.type,
           default: "",
-          required: !bodyParams.required
-            ? false
-            : bodyParams.required.includes(_p),
-          example: property.example ?? "",
-          extra: property.description ?? "",
+          required: param.required,
+          example: param.example ?? "",
+          extra: param.description ?? "",
         });
       }
     }
@@ -238,7 +250,14 @@ export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
   const { json } = useStore();
   const { definitions } = json;
   const responses = api.responses[200];
-  const _R = definitions[responses.schema?.originalRef];
+  const _r = responses.schema?.originalRef
+    ? responses.schema?.originalRef
+    : responses.schema?.$ref
+    ? responses.schema?.$ref.split("/")[
+        responses.schema?.$ref.split("/").length - 1
+      ]
+    : "";
+  const _R = definitions[_r];
   const response: IApiRequestBody[] = [];
   for (const _p in _R?.properties) {
     const k = _p as keyof typeof _R.properties;
@@ -256,6 +275,11 @@ export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
         : property.originalRef
         ? property.originalRef
         : undefined,
+      $ref: property.items
+        ? property.items.$ref
+        : property.$ref
+        ? property.$ref
+        : undefined,
     });
   }
   return (
@@ -266,12 +290,16 @@ export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
       dataSource={response}
       expandable={{
         expandedRowRender: record =>
-          record.originalRef ? (
-            <ApiResponseBodyItem originalRef={record.originalRef} />
+          record.originalRef || record.$ref ? (
+            <ApiResponseBodyItem
+              ref={record.$ref}
+              originalRef={record.originalRef}
+            />
           ) : (
             <></>
           ),
-        rowExpandable: record => record.originalRef !== undefined,
+        rowExpandable: record =>
+          record.originalRef !== undefined || record.$ref !== undefined,
       }}
       pagination={false}
     />
@@ -279,13 +307,20 @@ export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
 };
 
 export const ApiResponseBodyItem = ({
+  ref,
   originalRef,
 }: {
-  originalRef: string;
+  ref: string | undefined;
+  originalRef: string | undefined;
 }) => {
   const { json } = useStore();
   const { definitions } = json;
-  const _R = definitions[originalRef];
+  const _r = originalRef
+    ? originalRef
+    : ref
+    ? ref.split("/")[ref.split("/").length - 1]
+    : "";
+  const _R = definitions[_r];
   const response: IApiRequestBody[] = [];
   for (const _p in _R?.properties) {
     const k = _p as keyof typeof _R.properties;
@@ -302,6 +337,11 @@ export const ApiResponseBodyItem = ({
         ? property.items.originalRef
         : property.originalRef
         ? property.originalRef
+        : undefined,
+      $ref: property.items
+        ? property.items.$ref
+        : property.$ref
+        ? property.$ref
         : undefined,
     });
   }
@@ -340,12 +380,16 @@ export const ApiResponseBodyItem = ({
       dataSource={response}
       expandable={{
         expandedRowRender: record =>
-          record.originalRef ? (
-            <ApiResponseBodyItem originalRef={record.originalRef} />
+          record.originalRef || record.$ref ? (
+            <ApiResponseBodyItem
+              ref={record.$ref}
+              originalRef={record.originalRef}
+            />
           ) : (
             <></>
           ),
-        rowExpandable: record => record.originalRef !== undefined,
+        rowExpandable: record =>
+          record.originalRef !== undefined || record.$ref !== undefined,
       }}
       pagination={false}
     />
@@ -368,9 +412,8 @@ export const ApiDetail = () => {
             <ApiMethod method={api?.method} /> {api?.path}
           </Item>
           <Item key="tags" label="Tags">
-            {api?.item.tags.map((tag, i) => (
-              <Tag key={i}>{tag}</Tag>
-            ))}
+            {api?.item?.tags &&
+              api?.item?.tags.map((tag, i) => <Tag key={i}>{tag}</Tag>)}
           </Item>
         </Descriptions>
       </div>

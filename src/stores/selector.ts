@@ -11,7 +11,7 @@ export const ApiSelector = (s: Store) => {
       const _i = paths[_p];
       const _k = method as keyof typeof _i;
       const item = paths[_p][_k] as IPathMethod;
-      if (item.operationId === current)
+      if (item.operationId === current || item.summary === current)
         return {
           item,
           path: _p,
@@ -28,8 +28,10 @@ export const TagListSelector = (s: Store) => {
   const res: {
     [key: string]: IPath[];
   } = {};
-  for (const tag of tags) {
-    res[tag.name] = [];
+  if (tags) {
+    for (const tag of tags) {
+      res[tag.name] = [];
+    }
   }
   for (const path in paths) {
     for (const method in paths[path]) {
@@ -37,8 +39,20 @@ export const TagListSelector = (s: Store) => {
       const _i = paths[_p];
       const _k = method as keyof typeof _i;
       const item = paths[_p][_k] as IPathMethod;
-      for (const _tag of item.tags) {
-        res[_tag].push(paths[path]);
+      if (item.tags) {
+        for (const _tag of item.tags) {
+          if (res[_tag]) {
+            res[_tag].push(paths[path]);
+          } else {
+            res[_tag] = [paths[path]];
+          }
+        }
+      } else {
+        if (res[path]) {
+          res[path].push(paths[path]);
+        } else {
+          res[path] = [paths[path]];
+        }
       }
     }
   }
