@@ -49,6 +49,13 @@ export enum RequestMethod {
   Delete = "delete",
 }
 
+export const RequestMethodColor = {
+  [RequestMethod.Post]: "green",
+  [RequestMethod.Get]: "blue",
+  [RequestMethod.Delete]: "red",
+  [RequestMethod.Patch]: "purple",
+};
+
 export type IPath = {
   [key in RequestMethod]: IPathMethod;
 };

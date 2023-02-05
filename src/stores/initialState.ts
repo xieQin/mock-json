@@ -8,10 +8,12 @@ export interface StoreState {
   tagList: {
     [key: string]: IPath[];
   };
+  current: string;
 }
 
 export const initialState: StoreState = {
   count: 0,
   json: apiDocs as unknown as ISwagger,
   tagList: {},
+  current: "",
 };

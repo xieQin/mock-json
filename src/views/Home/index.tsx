@@ -1,48 +1,39 @@
-// import styles from "@/assets/styles/Home.module.css";
-import { Collapse, List } from "antd";
+import { Descriptions } from "antd";
 
-import { IPath, IPathMethod } from "@/models";
-import { TagListSelector, useStore } from "@/stores";
+import styles from "@/assets/styles/Home.module.css";
+import { useStore } from "@/stores";
 
-const { Panel } = Collapse;
+import { ApiDetail } from "./components/api";
+import { TagList } from "./components/tag";
 
-export const ApiItem = ({ api }: { api: IPathMethod }) => {
-  return <List.Item>{api.summary}</List.Item>;
-};
-
-export const PathItem = ({ path }: { path: IPath }) => {
-  const item = (k: keyof typeof path) => path[k];
-  const list = Object.keys(path).map(k => item(k as keyof typeof path));
-  return <List dataSource={list} renderItem={api => <ApiItem api={api} />} />;
-};
-
-export const PathList = ({ paths }: { paths: IPath[] }) => {
+export const SwaggerInfo = () => {
+  const { json } = useStore();
+  const { Item } = Descriptions;
   return (
-    <>
-      {paths.map((item, i) => (
-        <PathItem key={i} path={item} />
-      ))}
-    </>
-  );
-};
-
-export const TagItem = ({ paths }: { paths: IPath[] }) => {
-  return <PathList paths={paths} />;
-};
-
-export const TagList = () => {
-  const tagList = useStore(TagListSelector);
-  return (
-    <Collapse ghost>
-      {Object.keys(tagList).map((tag, i) => (
-        <Panel key={i} header={tag}>
-          <TagItem paths={tagList[tag]} />
-        </Panel>
-      ))}
-    </Collapse>
+    <div className={styles.HomeHeader}>
+      <Descriptions bordered title="Swagger Info">
+        <Item label="Title">{json.info.title}</Item>
+        <Item label="Version">{json.info.version}</Item>
+        <Item label="Description">{json.info.description}</Item>
+        <Item label="Host">{json.host}</Item>
+        <Item label="BasePath">{json.basePath}</Item>
+      </Descriptions>
+    </div>
   );
 };
 
 export default function HomePage() {
-  return <TagList />;
+  return (
+    <div className={styles.Home}>
+      <SwaggerInfo />
+      <div className={styles.HomeSection}>
+        <div className={styles.HomeSide}>
+          <TagList />
+        </div>
+        <div className={styles.HomeContent}>
+          <ApiDetail />
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -11,3 +11,17 @@
   margin: 0 auto;
   padding-top: 60px;
 }
+.HomeHeader {
+  padding-top: 16px;
+  margin: 0 16px;
+}
+.HomeSection {
+  display: flex;
+  flex-direction: row;
+}
+.HomeSide {
+  position: relative;
+}
+.HomeContent {
+  flex: 1;
+}

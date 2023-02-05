@@ -2,6 +2,21 @@ import { IPath, IPathMethod } from "@/models";
 
 import { Store } from "./store";
 
+export const ApiSelector = (s: Store) => {
+  const { current, json } = s;
+  const { paths } = json;
+  for (const path in paths) {
+    for (const method in paths[path]) {
+      const _p = path as keyof typeof paths;
+      const _i = paths[_p];
+      const _k = method as keyof typeof _i;
+      const item = paths[_p][_k] as IPathMethod;
+      if (item.operationId === current) return item;
+    }
+  }
+  return null;
+};
+
 export const TagListSelector = (s: Store) => {
   const { json } = s;
   const { tags, paths } = json;
