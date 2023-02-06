@@ -212,8 +212,68 @@ export const ApiRequestBody = ({ body }: { body: IApiRequestBody[] }) => {
   );
 };
 
+export const useApiDataSource = () => {
+  const { json } = useStore();
+  const { definitions } = json;
+  const dataSource = (ref: string): IApiRequestBody[] => {
+    const _definition = definitions[ref];
+    const res: IApiRequestBody[] = [];
+    for (const _p in _definition?.properties) {
+      const k = _p as keyof typeof _definition.properties;
+      const property = _definition.properties[k];
+      const originalRef = property.originalRef
+        ? property.originalRef
+        : property.items
+        ? property.items.originalRef
+        : "";
+      const $ref = property.$ref
+        ? property.$ref
+        : property.items
+        ? property.items.$ref
+        : "";
+      res.push({
+        ...property,
+        param: _p,
+        type: property.type,
+        default: "",
+        required: !_definition.required
+          ? false
+          : _definition.required.includes(_p),
+        example: property.example ?? "",
+        extra: property.description ?? "",
+        originalRef,
+        $ref,
+      });
+    }
+    return res;
+  };
+
+  return {
+    dataSource,
+  };
+};
+
 // todo refactor body
 export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
+  const responses = api.responses[200];
+  const { originalRef, $ref } = responses.schema;
+  const _ref = originalRef
+    ? originalRef
+    : $ref
+    ? $ref.split("/")[$ref.split("/").length - 1]
+    : "";
+  return <ApiResponseBodyItem _ref={_ref} showHeader={true} />;
+};
+
+export const ApiResponseBodyItem = ({
+  _ref,
+  showHeader,
+}: {
+  _ref: string;
+  showHeader: boolean;
+}) => {
+  const { dataSource } = useApiDataSource();
+  const response: IApiRequestBody[] = dataSource(_ref);
   const columns = [
     {
       title: "名称",
@@ -247,149 +307,21 @@ export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
       key: "extra",
     },
   ];
-  const { json } = useStore();
-  const { definitions } = json;
-  const responses = api.responses[200];
-  const _r = responses.schema?.originalRef
-    ? responses.schema?.originalRef
-    : responses.schema?.$ref
-    ? responses.schema?.$ref.split("/")[
-        responses.schema?.$ref.split("/").length - 1
-      ]
-    : "";
-  const _R = definitions[_r];
-  const response: IApiRequestBody[] = [];
-  for (const _p in _R?.properties) {
-    const k = _p as keyof typeof _R.properties;
-    const property = _R.properties[k];
-    response.push({
-      ...property,
-      param: _p,
-      type: property.type,
-      default: "",
-      required: !_R.required ? false : _R.required.includes(_p),
-      example: property.example ?? "",
-      extra: property.description ?? "",
-      originalRef: property.items
-        ? property.items.originalRef
-        : property.originalRef
-        ? property.originalRef
-        : undefined,
-      $ref: property.items
-        ? property.items.$ref
-        : property.$ref
-        ? property.$ref
-        : undefined,
-    });
-  }
   return (
     <Table
       rowKey="body"
       size="small"
       columns={columns}
+      showHeader={showHeader}
       dataSource={response}
       expandable={{
         expandedRowRender: record =>
-          record.originalRef || record.$ref ? (
-            <ApiResponseBodyItem
-              ref={record.$ref}
-              originalRef={record.originalRef}
-            />
+          record.originalRef ? (
+            <ApiResponseBodyItem _ref={record.originalRef} showHeader={false} />
           ) : (
             <></>
           ),
-        rowExpandable: record =>
-          record.originalRef !== undefined || record.$ref !== undefined,
-      }}
-      pagination={false}
-    />
-  );
-};
-
-export const ApiResponseBodyItem = ({
-  ref,
-  originalRef,
-}: {
-  ref: string | undefined;
-  originalRef: string | undefined;
-}) => {
-  const { json } = useStore();
-  const { definitions } = json;
-  const _r = originalRef
-    ? originalRef
-    : ref
-    ? ref.split("/")[ref.split("/").length - 1]
-    : "";
-  const _R = definitions[_r];
-  const response: IApiRequestBody[] = [];
-  for (const _p in _R?.properties) {
-    const k = _p as keyof typeof _R.properties;
-    const property = _R.properties[k];
-    response.push({
-      ...property,
-      param: _p,
-      type: property.type,
-      default: "",
-      required: !_R.required ? false : _R.required.includes(_p),
-      example: property.example ?? "",
-      extra: property.description ?? "",
-      originalRef: property.items
-        ? property.items.originalRef
-        : property.originalRef
-        ? property.originalRef
-        : undefined,
-      $ref: property.items
-        ? property.items.$ref
-        : property.$ref
-        ? property.$ref
-        : undefined,
-    });
-  }
-  const columns = [
-    {
-      dataIndex: "param",
-      key: "param",
-    },
-    {
-      dataIndex: "type",
-      key: "type",
-    },
-    {
-      dataIndex: "required",
-      key: "required",
-      render: (r: boolean) => (r ? "是" : "否"),
-    },
-    {
-      dataIndex: "default",
-      key: "default",
-    },
-    {
-      dataIndex: "example",
-      key: "example",
-    },
-    {
-      dataIndex: "extra",
-      key: "extra",
-    },
-  ];
-  return (
-    <Table
-      rowKey="body"
-      size="small"
-      columns={columns}
-      dataSource={response}
-      expandable={{
-        expandedRowRender: record =>
-          record.originalRef || record.$ref ? (
-            <ApiResponseBodyItem
-              ref={record.$ref}
-              originalRef={record.originalRef}
-            />
-          ) : (
-            <></>
-          ),
-        rowExpandable: record =>
-          record.originalRef !== undefined || record.$ref !== undefined,
+        rowExpandable: record => !!record.originalRef,
       }}
       pagination={false}
     />
