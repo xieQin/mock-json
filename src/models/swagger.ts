@@ -23,16 +23,18 @@ export interface IDefinitions {
 }
 
 export interface IDefinitionProperty {
-  [key: string]: {
-    type: string;
-    format?: string;
-    description?: string;
-    example?: string;
-    enum: [];
-    items?: ISchema;
-    $ref?: string;
-    originalRef?: string;
-  };
+  [key: string]: IDefinitionPropertyContent;
+}
+
+export interface IDefinitionPropertyContent {
+  type: string;
+  format?: string;
+  description?: string;
+  example?: string;
+  enum: [];
+  items?: ISchema;
+  $ref?: string;
+  originalRef?: string;
 }
 
 export interface ISwaggerInfo {

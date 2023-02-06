@@ -248,8 +248,20 @@ export const useApiDataSource = () => {
     return res;
   };
 
+  const getRef = (record: IApiRequestBody): string => {
+    const _getRef = ($ref: string) =>
+      $ref.split("/")[$ref.split("/").length - 1];
+    if (record.originalRef) return record.originalRef;
+    if (record.$ref) return _getRef(record.$ref);
+    if (record.items && record.items.originalRef)
+      return record.items.originalRef;
+    if (record.items && record.items.$ref) return _getRef(record.items.$ref);
+    return "";
+  };
+
   return {
     dataSource,
+    getRef,
   };
 };
 
@@ -272,7 +284,7 @@ export const ApiResponseBodyItem = ({
   _ref: string;
   showHeader: boolean;
 }) => {
-  const { dataSource } = useApiDataSource();
+  const { dataSource, getRef } = useApiDataSource();
   const response: IApiRequestBody[] = dataSource(_ref);
   const columns = [
     {
@@ -316,12 +328,15 @@ export const ApiResponseBodyItem = ({
       dataSource={response}
       expandable={{
         expandedRowRender: record =>
-          record.originalRef ? (
-            <ApiResponseBodyItem _ref={record.originalRef} showHeader={false} />
+          getRef(record) !== "" ? (
+            <ApiResponseBodyItem
+              _ref={getRef(record) as string}
+              showHeader={false}
+            />
           ) : (
             <></>
           ),
-        rowExpandable: record => !!record.originalRef,
+        rowExpandable: record => getRef(record) !== "",
       }}
       pagination={false}
     />
