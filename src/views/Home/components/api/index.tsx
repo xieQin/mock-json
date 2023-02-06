@@ -89,20 +89,20 @@ export const ApiRequestHeader = ({
 }) => {
   const columns = [
     {
-      title: "Param Name",
+      title: "Name",
       dataIndex: "param",
       key: "param",
     },
     {
-      title: "Param Value",
+      title: "Value",
       dataIndex: "paramValue",
       key: "paramValue",
     },
     {
-      title: "IsRequired",
+      title: "Required",
       dataIndex: "required",
       key: "required",
-      render: (r: boolean) => (r ? "是" : "否"),
+      render: (r: boolean) => (r ? "Yes" : "No"),
     },
     {
       title: "Example",
@@ -264,10 +264,10 @@ export const ApiPropertyItem = ({
       key: "type",
     },
     {
-      title: "IsRequired",
+      title: "Required",
       dataIndex: "required",
       key: "required",
-      render: (r: boolean) => (r ? "是" : "否"),
+      render: (r: boolean) => (r ? "Yes" : "No"),
     },
     {
       title: "Default",
