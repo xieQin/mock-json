@@ -124,28 +124,28 @@ export const ApiRequestHeader = ({
 }) => {
   const columns = [
     {
-      title: "参数名称",
+      title: "Param Name",
       dataIndex: "param",
       key: "param",
     },
     {
-      title: "参数值",
+      title: "Param Value",
       dataIndex: "paramValue",
       key: "paramValue",
     },
     {
-      title: "是否必须",
+      title: "IsRequired",
       dataIndex: "required",
       key: "required",
       render: (r: boolean) => (r ? "是" : "否"),
     },
     {
-      title: "示例",
+      title: "Example",
       dataIndex: "example",
       key: "example",
     },
     {
-      title: "备注",
+      title: "Extra",
       dataIndex: "extra",
       key: "extra",
     },
@@ -167,33 +167,33 @@ export const ApiRequestHeader = ({
 export const ApiRequestBody = ({ body }: { body: IApiRequestBody[] }) => {
   const columns = [
     {
-      title: "名称",
+      title: "Name",
       dataIndex: "param",
       key: "param",
     },
     {
-      title: "类型",
+      title: "Type",
       dataIndex: "type",
       key: "type",
     },
     {
-      title: "是否必须",
+      title: "IsRequired",
       dataIndex: "required",
       key: "required",
       render: (r: boolean) => (r ? "是" : "否"),
     },
     {
-      title: "默认值",
+      title: "Default",
       dataIndex: "default",
       key: "default",
     },
     {
-      title: "示例",
+      title: "Example",
       dataIndex: "example",
       key: "example",
     },
     {
-      title: "其他信息",
+      title: "Extra",
       dataIndex: "extra",
       key: "extra",
     },
@@ -288,33 +288,33 @@ export const ApiResponseBodyItem = ({
   const response: IApiRequestBody[] = dataSource(_ref);
   const columns = [
     {
-      title: "名称",
+      title: "Name",
       dataIndex: "param",
       key: "param",
     },
     {
-      title: "类型",
+      title: "Type",
       dataIndex: "type",
       key: "type",
     },
     {
-      title: "是否必须",
+      title: "IsRequired",
       dataIndex: "required",
       key: "required",
       render: (r: boolean) => (r ? "是" : "否"),
     },
     {
-      title: "默认值",
+      title: "Default",
       dataIndex: "default",
       key: "default",
     },
     {
-      title: "示例",
+      title: "Example",
       dataIndex: "example",
       key: "example",
     },
     {
-      title: "其他信息",
+      title: "Extra",
       dataIndex: "extra",
       key: "extra",
     },
