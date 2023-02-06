@@ -1,6 +1,7 @@
 import { Descriptions, List, Table, Tag } from "antd";
 
 import {
+  IParameter,
   IPathMethod,
   ISchema,
   RequestMethod,
@@ -62,10 +63,7 @@ export interface IApiRequestBody {
   originalRef?: string;
 }
 
-// todo refactor body
 export const ApiRequest = ({ api }: { api: IPathMethod }) => {
-  const { json } = useStore();
-  const { definitions } = json;
   const headers: IApiRequestHeaders[] = [
     {
       param: "Content-Type",
@@ -75,44 +73,11 @@ export const ApiRequest = ({ api }: { api: IPathMethod }) => {
       extra: "",
     },
   ];
-  const body: IApiRequestBody[] = [];
-  if (api.parameters) {
-    for (const param of api.parameters) {
-      if (param.schema) {
-        const bodyParams = definitions[param.schema?.originalRef];
-        if (!bodyParams) continue;
-        for (const _p in bodyParams?.properties) {
-          const k = _p as keyof typeof bodyParams.properties;
-          const property = bodyParams?.properties[k];
-          body.push({
-            param: _p,
-            type: property.type,
-            default: "",
-            required: !bodyParams.required
-              ? false
-              : bodyParams.required.includes(_p),
-            example: property.example ?? "",
-            extra: property.description ?? "",
-          });
-        }
-      } else {
-        body.push({
-          ...param,
-          param: param.name,
-          type: param.type,
-          default: "",
-          required: param.required,
-          example: param.example ?? "",
-          extra: param.description ?? "",
-        });
-      }
-    }
-  }
   return (
     <>
       <h4>Request</h4>
       <ApiRequestHeader key="header" headers={headers} />
-      <ApiRequestBody key="body" body={body} />
+      {api.parameters && <ApiRequestBody key="body" params={api.parameters} />}
     </>
   );
 };
@@ -164,57 +129,21 @@ export const ApiRequestHeader = ({
   );
 };
 
-export const ApiRequestBody = ({ body }: { body: IApiRequestBody[] }) => {
-  const columns = [
-    {
-      title: "Name",
-      dataIndex: "param",
-      key: "param",
-    },
-    {
-      title: "Type",
-      dataIndex: "type",
-      key: "type",
-    },
-    {
-      title: "IsRequired",
-      dataIndex: "required",
-      key: "required",
-      render: (r: boolean) => (r ? "是" : "否"),
-    },
-    {
-      title: "Default",
-      dataIndex: "default",
-      key: "default",
-    },
-    {
-      title: "Example",
-      dataIndex: "example",
-      key: "example",
-    },
-    {
-      title: "Extra",
-      dataIndex: "extra",
-      key: "extra",
-    },
-  ];
+export const ApiRequestBody = ({ params }: { params: IParameter[] }) => {
+  const { paramsSource } = useApiDataSource();
   return (
     <>
       <h5>Body:</h5>
-      <Table
-        rowKey="body"
-        size="small"
-        columns={columns}
-        dataSource={body}
-        pagination={false}
-      />
+      <ApiPropertyItem showHeader={true} data={paramsSource(params)} />
     </>
   );
 };
 
+// todo refactor source functions
 export const useApiDataSource = () => {
   const { json } = useStore();
   const { definitions } = json;
+
   const dataSource = (ref: string): IApiRequestBody[] => {
     const _definition = definitions[ref];
     const res: IApiRequestBody[] = [];
@@ -248,6 +177,42 @@ export const useApiDataSource = () => {
     return res;
   };
 
+  const paramsSource = (params: IParameter[]) => {
+    const res: IApiRequestBody[] = [];
+    for (const param of params) {
+      if (param.schema) {
+        const bodyParams = definitions[param.schema?.originalRef];
+        if (!bodyParams) continue;
+        for (const _p in bodyParams?.properties) {
+          const k = _p as keyof typeof bodyParams.properties;
+          const property = bodyParams?.properties[k];
+          res.push({
+            ...property,
+            param: _p,
+            type: property.type,
+            default: "",
+            required: !bodyParams.required
+              ? false
+              : bodyParams.required.includes(_p),
+            example: property.example ?? "",
+            extra: property.description ?? "",
+          });
+        }
+      } else {
+        res.push({
+          ...param,
+          param: param.name,
+          type: param.type,
+          default: "",
+          required: param.required,
+          example: param.example ?? "",
+          extra: param.description ?? "",
+        });
+      }
+    }
+    return res;
+  };
+
   const getRef = (record: IApiRequestBody): string => {
     const _getRef = ($ref: string) =>
       $ref.split("/")[$ref.split("/").length - 1];
@@ -261,11 +226,11 @@ export const useApiDataSource = () => {
 
   return {
     dataSource,
+    paramsSource,
     getRef,
   };
 };
 
-// todo refactor body
 export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
   const responses = api.responses[200];
   const { originalRef, $ref } = responses.schema;
@@ -274,18 +239,19 @@ export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
     : $ref
     ? $ref.split("/")[$ref.split("/").length - 1]
     : "";
-  return <ApiResponseBodyItem _ref={_ref} showHeader={true} />;
+  const { dataSource } = useApiDataSource();
+  const data: IApiRequestBody[] = dataSource(_ref);
+  return <ApiPropertyItem data={data} showHeader={true} />;
 };
 
-export const ApiResponseBodyItem = ({
-  _ref,
+export const ApiPropertyItem = ({
+  data,
   showHeader,
 }: {
-  _ref: string;
+  data: IApiRequestBody[];
   showHeader: boolean;
 }) => {
   const { dataSource, getRef } = useApiDataSource();
-  const response: IApiRequestBody[] = dataSource(_ref);
   const columns = [
     {
       title: "Name",
@@ -325,12 +291,12 @@ export const ApiResponseBodyItem = ({
       size="small"
       columns={columns}
       showHeader={showHeader}
-      dataSource={response}
+      dataSource={data}
       expandable={{
         expandedRowRender: record =>
           getRef(record) !== "" ? (
-            <ApiResponseBodyItem
-              _ref={getRef(record) as string}
+            <ApiPropertyItem
+              data={dataSource(getRef(record) as string)}
               showHeader={false}
             />
           ) : (
