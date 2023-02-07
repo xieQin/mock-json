@@ -105,3 +105,26 @@ export interface ISchema {
   $ref: string;
   originalRef: string;
 }
+
+export enum ApiType {
+  String = "string",
+  Number = "number",
+  Array = "array",
+  Object = "object",
+  Boolean = "boolean",
+  Integer = "integer",
+}
+
+export interface IApiProperty {
+  param: string;
+  type?: unknown;
+  value?: unknown;
+  required?: boolean;
+  example?: string;
+  default?: string;
+  extra?: string;
+  items?: ISchema;
+  $ref?: string;
+  originalRef?: string;
+  mock?: string;
+}

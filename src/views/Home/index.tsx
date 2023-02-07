@@ -3,7 +3,7 @@ import { Descriptions } from "antd";
 import styles from "@/assets/styles/Home.module.css";
 import { useStore } from "@/stores";
 
-import { ApiDetail } from "./components/api";
+import { ApiTabs } from "./components/api";
 import { TagList } from "./components/tag";
 
 export const SwaggerInfo = () => {
@@ -31,7 +31,7 @@ export default function HomePage() {
           <TagList />
         </div>
         <div className={styles.HomeContent}>
-          <ApiDetail />
+          <ApiTabs />
         </div>
       </div>
     </div>
