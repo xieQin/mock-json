@@ -1,4 +1,4 @@
-import { Descriptions, List, Table, Tag } from "antd";
+import { Descriptions, List, Table, Tabs, Tag } from "antd";
 
 import {
   IParameter,
@@ -116,26 +116,26 @@ export const ApiRequestHeader = ({
     },
   ];
   return (
-    <>
-      <h5>Headers:</h5>
-      <Table
-        rowKey="headers"
-        size="small"
-        columns={columns}
-        dataSource={headers}
-        pagination={false}
-      />
-    </>
+    <Table
+      key={`headers_${Math.random()}`}
+      title={() => <h5>Headers:</h5>}
+      rowKey={`headers_${Math.random()}`}
+      size="small"
+      columns={columns}
+      dataSource={headers}
+      pagination={false}
+    />
   );
 };
 
 export const ApiRequestBody = ({ params }: { params: IParameter[] }) => {
   const { paramsSource } = useApiDataSource();
   return (
-    <>
-      <h5>Body:</h5>
-      <ApiPropertyItem showHeader={true} data={paramsSource(params)} />
-    </>
+    <ApiPropertyItem
+      title={() => <h5>Body:</h5>}
+      showHeader={true}
+      data={paramsSource(params)}
+    />
   );
 };
 
@@ -233,7 +233,7 @@ export const useApiDataSource = () => {
 
 export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
   const responses = api.responses[200];
-  const { originalRef, $ref } = responses.schema;
+  const { originalRef, $ref } = responses.schema ?? {};
   const _ref = originalRef
     ? originalRef
     : $ref
@@ -246,9 +246,11 @@ export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
 
 export const ApiPropertyItem = ({
   data,
+  title,
   showHeader,
 }: {
   data: IApiRequestBody[];
+  title?: () => JSX.Element;
   showHeader: boolean;
 }) => {
   const { dataSource, getRef } = useApiDataSource();
@@ -287,7 +289,9 @@ export const ApiPropertyItem = ({
   ];
   return (
     <Table
-      rowKey="body"
+      key={`item_${Math.random()}`}
+      title={title}
+      rowKey={`item_${Math.random()}`}
       size="small"
       columns={columns}
       showHeader={showHeader}
@@ -309,12 +313,12 @@ export const ApiPropertyItem = ({
   );
 };
 
-export const ApiDetail = () => {
+export const ApiDetailInfo = () => {
   const api = useStore(ApiSelector);
   if (!api) return <></>;
   const { Item } = Descriptions;
   return (
-    <div className={styles.ApiDetail}>
+    <>
       <div>
         <h4>Basic Info</h4>
         <Descriptions bordered>
@@ -337,6 +341,26 @@ export const ApiDetail = () => {
         <h4>Response</h4>
         <ApiResponseBody api={api.item} />
       </div>
+    </>
+  );
+};
+
+export const ApiDetail = () => {
+  const tabItems = [
+    {
+      key: "info",
+      label: `API Info`,
+      children: <ApiDetailInfo />,
+    },
+    {
+      key: "mock",
+      label: `API Mock`,
+      children: `API Mock section`,
+    },
+  ];
+  return (
+    <div className={styles.ApiDetail}>
+      <Tabs defaultActiveKey="info" items={tabItems} />
     </div>
   );
 };
