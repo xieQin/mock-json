@@ -26,8 +26,12 @@ export const ApiMockBasic = ({
       <Form.Item name="summary" label="API Name" initialValue={item.summary}>
         <Input style={{ width: 300 }} />
       </Form.Item>
-      <Form.Item name="path" label="API path" initialValue={path}>
-        <ApiMethod method={method} />
+      <Form.Item
+        name="path"
+        label="API path"
+        initialValue={path}
+        extra={<ApiMethod method={method} />}
+      >
         <Input style={{ width: 300 }} />
       </Form.Item>
     </Form>
@@ -44,11 +48,11 @@ export const ApiMocks = () => {
       </div>
       <div style={{ marginTop: 16 }}>
         <h4>Request Settings</h4>
-        <ApiMockRequest api={api?.item} />
+        <ApiMockRequest {...api} />
       </div>
       <div style={{ marginTop: 16 }}>
         <h4>Response Settings</h4>
-        <ApiMockResponse api={api?.item} path={api.path} />
+        <ApiMockResponse api={api?.item} path={api?.path} />
       </div>
     </>
   ) : (

@@ -2,9 +2,10 @@ import { Radio, RadioChangeEvent, Table } from "antd";
 import { useState } from "react";
 
 import { useApiDataSource } from "@/hooks";
-import { IApiProperty, IParameter, IPathMethod } from "@/models";
+import { IApiProperty, IParameter, IPathMethod, RequestMethod } from "@/models";
 
 import { ApiPropertyItem } from "./item";
+import { ApiTreeProperties } from "./response";
 
 export const ApiRequest = ({ api }: { api: IPathMethod }) => {
   const data: IApiProperty[] = [
@@ -87,16 +88,33 @@ export const ApiRequestBody = ({ params }: { params: IParameter[] }) => {
   );
 };
 
-export const ApiMockRequest = ({ api }: { api: IPathMethod }) => {
+export const ApiMockRequest = ({
+  item,
+  method,
+  path,
+}: {
+  item: IPathMethod;
+  method: RequestMethod;
+  path: string | number;
+}) => {
   const options = [
     { label: "Body", value: "Body" },
     { label: "Query", value: "Query" },
     { label: "Headers", value: "Headers" },
   ];
+  const methodOption = {
+    [RequestMethod.Get]: "Query",
+    [RequestMethod.Post]: "Body",
+    [RequestMethod.Delete]: "Body",
+    [RequestMethod.Patch]: "Body",
+  };
   const [request, setRequest] = useState("Body");
   const onRequestChange = ({ target: { value } }: RadioChangeEvent) => {
     setRequest(value);
   };
+  const { paramsSource } = useApiDataSource();
+  const parameters = item?.parameters ?? [];
+  const data = paramsSource(parameters);
   return (
     <div>
       <Radio.Group
@@ -106,6 +124,11 @@ export const ApiMockRequest = ({ api }: { api: IPathMethod }) => {
         buttonStyle="solid"
         onChange={onRequestChange}
       />
+      {methodOption[method] === request && (
+        <div>
+          <ApiTreeProperties data={data} path={path} />
+        </div>
+      )}
     </div>
   );
 };

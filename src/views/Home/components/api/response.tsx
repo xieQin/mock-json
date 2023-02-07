@@ -19,22 +19,14 @@ export const ApiResponse = ({ api }: { api: IPathMethod }) => {
   return <ApiPropertyItem data={data} showHeader={true} />;
 };
 
-export const ApiMockResponse = ({
-  api,
+export const ApiTreeProperties = ({
+  data,
   path,
 }: {
-  api: IPathMethod;
+  data: IApiProperty[];
   path: string | number;
 }) => {
-  const responses = api?.responses[200];
-  const { originalRef, $ref } = responses?.schema ?? {};
-  const _ref = originalRef
-    ? originalRef
-    : $ref
-    ? $ref.split("/")[$ref.split("/").length - 1]
-    : "";
   const { dataSource, getRef } = useApiDataSource();
-  const data: IApiProperty[] = dataSource(_ref);
   const dataForms = ["param", "type", "mock", "extra"];
   const getChildrenData = (data: IApiProperty[], index: number): DataNode[] => {
     return data.map((d, i) => {
@@ -57,12 +49,13 @@ export const ApiMockResponse = ({
         ),
         key: `${index}-${i}`,
       });
+      const child = getChild(d, index);
       if (_ref === "") {
-        return getChild(d, index);
+        return child;
       } else {
         const childData: IApiProperty[] = dataSource(_ref);
         return {
-          ...getChild(d, index),
+          ...child,
           children: getChildrenData(childData, index + 1),
         };
       }
@@ -70,7 +63,7 @@ export const ApiMockResponse = ({
   };
   const treeData: DataNode[] = [
     {
-      title: "Response",
+      title: "Root",
       key: "0",
       children: getChildrenData(data, 0),
     },
@@ -84,4 +77,23 @@ export const ApiMockResponse = ({
       treeData={treeData}
     />
   );
+};
+
+export const ApiMockResponse = ({
+  api,
+  path,
+}: {
+  api: IPathMethod;
+  path: string | number;
+}) => {
+  const responses = api?.responses[200];
+  const { originalRef, $ref } = responses?.schema ?? {};
+  const _ref = originalRef
+    ? originalRef
+    : $ref
+    ? $ref.split("/")[$ref.split("/").length - 1]
+    : "";
+  const { dataSource } = useApiDataSource();
+  const data: IApiProperty[] = dataSource(_ref);
+  return <ApiTreeProperties data={data} path={path} />;
 };
