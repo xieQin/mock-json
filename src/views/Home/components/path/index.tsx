@@ -2,7 +2,7 @@ import { List } from "antd";
 
 import { IPath } from "@/models";
 
-import { ApiItem } from "../api";
+import { ApiItem } from "../items";
 
 export const PathItem = ({ path }: { path: IPath }) => {
   const item = (k: keyof typeof path) => path[k];

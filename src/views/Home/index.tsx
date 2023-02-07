@@ -3,7 +3,7 @@ import { Descriptions } from "antd";
 import styles from "@/assets/styles/Home.module.css";
 import { useStore } from "@/stores";
 
-import { ApiTabs } from "./components/api";
+import { ApiTabs } from "./components/items";
 import { TagList } from "./components/tag";
 
 export const SwaggerInfo = () => {
