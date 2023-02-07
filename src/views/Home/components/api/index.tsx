@@ -12,11 +12,7 @@ import { ApiSelector, useStore } from "@/stores";
 import styles from "./index.module.css";
 
 export const ApiMethod = ({ method }: { method: RequestMethod }) => {
-  return (
-    <Tag style={{ marginLeft: 5 }} color={RequestMethodColor[method]}>
-      {method}
-    </Tag>
-  );
+  return <Tag color={RequestMethodColor[method]}>{method}</Tag>;
 };
 
 export const ApiItem = ({
@@ -36,8 +32,8 @@ export const ApiItem = ({
       }}
     >
       <List.Item>
-        {api.summary}
         <ApiMethod method={method} />
+        {api.summary}
       </List.Item>
     </div>
   );
@@ -64,7 +60,7 @@ export interface IApiRequestBody {
 }
 
 export const ApiRequest = ({ api }: { api: IPathMethod }) => {
-  const headers: IApiRequestHeaders[] = [
+  const data: IApiRequestHeaders[] = [
     {
       param: "Content-Type",
       paramValue: api.consumes,
@@ -76,16 +72,22 @@ export const ApiRequest = ({ api }: { api: IPathMethod }) => {
   return (
     <>
       <h4>Request</h4>
-      <ApiRequestHeader key="header" headers={headers} />
+      <ApiRequestHeader
+        key="header"
+        title={() => <h5>Headers:</h5>}
+        data={data}
+      />
       {api.parameters && <ApiRequestBody key="body" params={api.parameters} />}
     </>
   );
 };
 
 export const ApiRequestHeader = ({
-  headers,
+  data,
+  title,
 }: {
-  headers: IApiRequestHeaders[];
+  data: IApiRequestHeaders[];
+  title?: () => JSX.Element;
 }) => {
   const columns = [
     {
@@ -118,11 +120,11 @@ export const ApiRequestHeader = ({
   return (
     <Table
       key={`headers_${Math.random()}`}
-      title={() => <h5>Headers:</h5>}
+      title={title}
       rowKey={`headers_${Math.random()}`}
       size="small"
       columns={columns}
-      dataSource={headers}
+      dataSource={data}
       pagination={false}
     />
   );
