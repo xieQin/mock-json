@@ -1,4 +1,17 @@
-import { Descriptions, List, Table, Tabs, Tag } from "antd";
+import {
+  Descriptions,
+  Form,
+  Input,
+  List,
+  Radio,
+  RadioChangeEvent,
+  Table,
+  Tabs,
+  Tag,
+  Tree,
+} from "antd";
+import { DataNode } from "antd/es/tree";
+import { useState } from "react";
 
 import {
   IParameter,
@@ -47,7 +60,7 @@ export interface IApiRequestHeaders {
   extra: string;
 }
 
-export interface IApiRequestBody {
+export interface IApiProperty {
   param: string;
   type: unknown;
   required?: boolean;
@@ -57,6 +70,7 @@ export interface IApiRequestBody {
   items?: ISchema;
   $ref?: string;
   originalRef?: string;
+  mock?: string;
 }
 
 export const ApiRequest = ({ api }: { api: IPathMethod }) => {
@@ -71,7 +85,6 @@ export const ApiRequest = ({ api }: { api: IPathMethod }) => {
   ];
   return (
     <>
-      <h4>Request</h4>
       <ApiRequestHeader
         key="header"
         title={() => <h5>Headers:</h5>}
@@ -146,9 +159,9 @@ export const useApiDataSource = () => {
   const { json } = useStore();
   const { definitions } = json;
 
-  const dataSource = (ref: string): IApiRequestBody[] => {
+  const dataSource = (ref: string): IApiProperty[] => {
     const _definition = definitions[ref];
-    const res: IApiRequestBody[] = [];
+    const res: IApiProperty[] = [];
     for (const _p in _definition?.properties) {
       const k = _p as keyof typeof _definition.properties;
       const property = _definition.properties[k];
@@ -163,7 +176,6 @@ export const useApiDataSource = () => {
         ? property.items.$ref
         : "";
       res.push({
-        ...property,
         param: _p,
         type: property.type,
         default: "",
@@ -174,13 +186,14 @@ export const useApiDataSource = () => {
         extra: property.description ?? "",
         originalRef,
         $ref,
+        mock: "",
       });
     }
     return res;
   };
 
   const paramsSource = (params: IParameter[]) => {
-    const res: IApiRequestBody[] = [];
+    const res: IApiProperty[] = [];
     for (const param of params) {
       if (param.schema) {
         const bodyParams = definitions[param.schema?.originalRef];
@@ -198,6 +211,7 @@ export const useApiDataSource = () => {
               : bodyParams.required.includes(_p),
             example: property.example ?? "",
             extra: property.description ?? "",
+            mock: "",
           });
         }
       } else {
@@ -209,13 +223,14 @@ export const useApiDataSource = () => {
           required: param.required,
           example: param.example ?? "",
           extra: param.description ?? "",
+          mock: "",
         });
       }
     }
     return res;
   };
 
-  const getRef = (record: IApiRequestBody): string => {
+  const getRef = (record: IApiProperty): string => {
     const _getRef = ($ref: string) =>
       $ref.split("/")[$ref.split("/").length - 1];
     if (record.originalRef) return record.originalRef;
@@ -242,7 +257,7 @@ export const ApiResponseBody = ({ api }: { api: IPathMethod }) => {
     ? $ref.split("/")[$ref.split("/").length - 1]
     : "";
   const { dataSource } = useApiDataSource();
-  const data: IApiRequestBody[] = dataSource(_ref);
+  const data: IApiProperty[] = dataSource(_ref);
   return <ApiPropertyItem data={data} showHeader={true} />;
 };
 
@@ -251,7 +266,7 @@ export const ApiPropertyItem = ({
   title,
   showHeader,
 }: {
-  data: IApiRequestBody[];
+  data: IApiProperty[];
   title?: () => JSX.Element;
   showHeader: boolean;
 }) => {
@@ -337,6 +352,7 @@ export const ApiDetailInfo = () => {
         </Descriptions>
       </div>
       <div style={{ marginTop: 16 }}>
+        <h4>Request</h4>
         <ApiRequest api={api.item} />
       </div>
       <div style={{ marginTop: 16 }}>
@@ -344,6 +360,115 @@ export const ApiDetailInfo = () => {
         <ApiResponseBody api={api.item} />
       </div>
     </>
+  );
+};
+
+export const ApiMocks = () => {
+  const api = useStore(ApiSelector);
+  const layout = {
+    labelCol: { span: 4 },
+    wrapperCol: { span: 20 },
+  };
+  const options = [
+    { label: "Body", value: "Body" },
+    { label: "Query", value: "Query" },
+    { label: "Headers", value: "Headers" },
+  ];
+  const [request, setRequest] = useState("Body");
+  const onRequestChange = ({ target: { value } }: RadioChangeEvent) => {
+    setRequest(value);
+  };
+  const responses = api?.item.responses[200];
+  const { originalRef, $ref } = responses?.schema ?? {};
+  const _ref = originalRef
+    ? originalRef
+    : $ref
+    ? $ref.split("/")[$ref.split("/").length - 1]
+    : "";
+  const { dataSource, getRef } = useApiDataSource();
+  const data: IApiProperty[] = dataSource(_ref);
+  const dataForms = ["param", "type", "mock", "extra"];
+  const getChildrenData = (data: IApiProperty[], index: number): DataNode[] => {
+    return data.map((d, i) => {
+      const _ref = getRef(d);
+      const getChild = (_d: IApiProperty, index: number) => ({
+        title: (
+          <Form key={`${api?.path}_${i}`} layout="inline">
+            {Object.keys(_d).map(k => {
+              if (dataForms.includes(k)) {
+                const _k = k as keyof typeof d;
+                const item = d[_k] as IApiProperty;
+                return (
+                  <Form.Item key={k} name={k} initialValue={item}>
+                    <Input placeholder={k} />
+                  </Form.Item>
+                );
+              }
+            })}
+          </Form>
+        ),
+        key: `${index}-${i}`,
+      });
+      if (_ref === "") {
+        return getChild(d, index);
+      } else {
+        const childData: IApiProperty[] = dataSource(_ref);
+        return {
+          ...getChild(d, index),
+          children: getChildrenData(childData, index + 1),
+        };
+      }
+    });
+  };
+  const treeData: DataNode[] = [
+    {
+      title: "Response",
+      key: "0",
+      children: getChildrenData(data, 0),
+    },
+  ];
+  return api ? (
+    <>
+      <div>
+        <h4>Basic Settings</h4>
+        <Form key={api.path} {...layout}>
+          <Form.Item
+            name="summary"
+            label="API Name"
+            initialValue={api.item.summary}
+          >
+            <Input style={{ width: 300 }} />
+          </Form.Item>
+          <Form.Item name="path" label="API path" initialValue={api.path}>
+            <Input style={{ width: 300 }} />
+          </Form.Item>
+        </Form>
+      </div>
+      <div style={{ marginTop: 16 }}>
+        <h4>Request Settings</h4>
+        <div>
+          <Radio.Group
+            options={options}
+            value={request}
+            optionType="button"
+            buttonStyle="solid"
+            onChange={onRequestChange}
+          />
+        </div>
+      </div>
+      <div style={{ marginTop: 16 }}>
+        <h4>Response Settings</h4>
+        <Tree
+          checkable
+          defaultExpandAll
+          blockNode
+          defaultSelectedKeys={["0-1"]}
+          treeData={treeData}
+        />
+      </div>
+    </>
+  ) : (
+    <></>
   );
 };
 
@@ -357,7 +482,7 @@ export const ApiDetail = () => {
     {
       key: "mock",
       label: `API Mock`,
-      children: `API Mock section`,
+      children: <ApiMocks />,
     },
   ];
   return (
