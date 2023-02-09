@@ -49,7 +49,6 @@ export const useApiDataSource = () => {
           const k = _p as keyof typeof bodyParams.properties;
           const property = bodyParams?.properties[k];
           res.push({
-            ...property,
             param: _p,
             type: property.type,
             default: "",
@@ -63,7 +62,6 @@ export const useApiDataSource = () => {
         }
       } else {
         res.push({
-          ...param,
           param: param.name,
           type: param.type,
           default: "",

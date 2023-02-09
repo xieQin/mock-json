@@ -81,7 +81,6 @@ export const ApiTreeProperties = ({
   ];
   return (
     <Tree
-      checkable
       defaultExpandAll
       blockNode
       defaultSelectedKeys={["0-1"]}
