@@ -1,4 +1,4 @@
-import { Form, Input } from "antd";
+import { Button, Form, Input } from "antd";
 
 import { IPathMethod, RequestMethod } from "@/models";
 import { ApiSelector, useStore } from "@/stores";
@@ -54,6 +54,7 @@ export const ApiMocks = () => {
         <h4>Response Settings</h4>
         <ApiMockResponse api={api?.item} path={api?.path} />
       </div>
+      <Button size="middle">Save</Button>
     </>
   ) : (
     <></>

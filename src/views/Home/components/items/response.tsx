@@ -1,8 +1,8 @@
-import { Form, Input, Tree } from "antd";
+import { Form, Input, Select, Tree } from "antd";
 import { DataNode } from "antd/es/tree";
 
 import { useApiDataSource } from "@/hooks";
-import { IApiProperty, IPathMethod } from "@/models";
+import { ApiObjectType, IApiProperty, IPathMethod } from "@/models";
 
 import { ApiPropertyItem } from "./item";
 
@@ -28,6 +28,10 @@ export const ApiTreeProperties = ({
 }) => {
   const { dataSource, getRef } = useApiDataSource();
   const dataForms = ["param", "type", "mock", "extra"];
+  const typeOptions = Object.keys(ApiObjectType).map(k => ({
+    label: k,
+    value: k,
+  }));
   const getChildrenData = (data: IApiProperty[], index: number): DataNode[] => {
     return data.map((d, i) => {
       const _ref = getRef(d);
@@ -40,7 +44,14 @@ export const ApiTreeProperties = ({
                 const item = d[_k] as IApiProperty;
                 return (
                   <Form.Item key={k} name={k} initialValue={item}>
-                    <Input placeholder={k} />
+                    {k === "type" ? (
+                      <Select
+                        options={typeOptions}
+                        style={{ minWidth: 80 }}
+                      ></Select>
+                    ) : (
+                      <Input placeholder={k} />
+                    )}
                   </Form.Item>
                 );
               }

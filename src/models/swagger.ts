@@ -106,7 +106,7 @@ export interface ISchema {
   originalRef: string;
 }
 
-export enum ApiType {
+export enum ApiObjectType {
   String = "string",
   Number = "number",
   Array = "array",
