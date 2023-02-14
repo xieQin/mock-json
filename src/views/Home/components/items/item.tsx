@@ -17,7 +17,7 @@ export const ApiPropertyItem = ({
     {
       title: "Name",
       dataIndex: "param",
-      key: "param",
+      key: "name",
     },
     {
       title: "Type",
@@ -48,9 +48,8 @@ export const ApiPropertyItem = ({
   ];
   return (
     <Table
-      key={`item_${Math.random()}`}
+      rowKey={record => record.param}
       title={title}
-      rowKey={`item_${Math.random()}`}
       size="small"
       columns={columns}
       showHeader={showHeader}
