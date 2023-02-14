@@ -54,7 +54,14 @@ export const ApiMocks = () => {
         <h4>Response Settings</h4>
         <ApiMockResponse api={api?.item} path={api?.path} />
       </div>
-      <Button size="middle">Save</Button>
+      <Button
+        size="middle"
+        onClick={() => {
+          console.log("22");
+        }}
+      >
+        Save
+      </Button>
     </>
   ) : (
     <></>

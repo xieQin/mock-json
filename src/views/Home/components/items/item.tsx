@@ -48,7 +48,6 @@ export const ApiPropertyItem = ({
   ];
   return (
     <Table
-      rowKey={record => record.param}
       title={title}
       size="small"
       columns={columns}

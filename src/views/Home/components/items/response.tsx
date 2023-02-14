@@ -29,8 +29,8 @@ export const ApiTreeProperties = ({
   const { dataSource, getRef } = useApiDataSource();
   const dataForms = ["param", "type", "mock", "extra"];
   const typeOptions = Object.keys(ApiObjectType).map(k => ({
-    label: k,
-    value: k,
+    label: ApiObjectType[k as keyof typeof ApiObjectType],
+    value: ApiObjectType[k as keyof typeof ApiObjectType],
   }));
   const getChildrenData = (data: IApiProperty[], index: number): DataNode[] => {
     return data.map((d, i) => {
