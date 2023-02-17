@@ -1,6 +1,6 @@
 import { IPath, ISwagger } from "@/models";
 
-import apiDocs from "../../data/demo.json";
+import apiDocs from "../../data/api-docs.json";
 
 export interface StoreState {
   count: number;

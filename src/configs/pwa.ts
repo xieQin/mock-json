@@ -19,12 +19,13 @@ export const PWAConfig: Partial<VitePWAOptions> = {
     sourcemap: true,
     skipWaiting: true,
     cleanupOutdatedCaches: true,
-    // globPatterns: ["**/*.{js,css,html}", "**/*.{svg,png,jpg,gif}"],
+    globPatterns: ["**/*.{js,css,html}", "**/*.{svg,png,jpg,gif}"],
   },
 };
 
 export const replaceOptions: Partial<RollupReplaceOptions> = {
   __DATE__: new Date().toISOString(),
+  preventAssignment: true,
 };
 const claims = process.env.CLAIMS === "true";
 const reload = process.env.RELOAD_SW === "true";
